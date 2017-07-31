@@ -26,14 +26,15 @@
 import os
 import sys
 import inspect
-from types import *
+import pickle
+import functools
 from collections import OrderedDict # Requires Python 2.7+
 import pprint
 import cPickle
 
-from gameengine import * # Change this to import everything from the file containing main().
+from run_find_inline_terms import *  # Change this to import everything from the file containing main().
 
-TRACE_BASE = "/home/chris/ab/gamemenu.py" # Change this to the file you want to trace.
+TRACE_BASE = "/development/projects/04_clients/czi/ds/The_Termolator/dictionary.py"  # Change this to the file you want to trace.
 
 TRACE_FILE_EXT='.trace'
 TRACE_RETURN_FILE_EXT='.return-trace'
@@ -50,7 +51,7 @@ trace_return_data = dict()
 
 
 def describe_arg(a, arg_values):
-	if type(a) is StringType:
+    if type(a) is str:
 		if a != "self":
 			a_value = arg_values.locals[a]
 			a_type = a_value.__class__.__name__
@@ -60,12 +61,11 @@ def describe_arg(a, arg_values):
 	elif type(a) is ListType: # ListType is not hashable
 		return "anonymous_list", str(a)
 	else:
-		print "Unexpected type for %s: %s" % (a, type(a))
+        print("Unexpected type for %s: %s" % (a, type(a)))
 		return None, None
 
 
 def traceit(frame, event, arg):
-
 	#http://docs.python.org/library/sys.html#sys.settrace
 	#http://docs.python.org/library/inspect.html
 	if event == "call" or event == "return":
@@ -117,15 +117,16 @@ def traceit(frame, event, arg):
 
 				types_set.add(type)
 
-
 	return traceit
+
 
 def description_for_types_set(types_set):
 	return "/".join(types_set)
 
+
 def description_for_arg_values(arg_values):
 	description = ""
-	for arg_name, types_set in arg_values.iteritems():
+    for arg_name, types_set in arg_values.items():    # @semanticbeeng @todo check this
 		description += ":" + arg_name
 		if len(types_set) > 0:
 			description += "," + description_for_types_set(types_set)
@@ -139,17 +140,17 @@ def compare_keys(item1, item2):
 	filename1 = parts1[0]
 	filename2 = parts2[0]
 
-	filename_cmp = cmp(filename1, filename2)
+	filename_cmp = cmp(filename1, filename2)          # @semanticbeeng @todo check this : use ==?
 	if filename_cmp == 0:
 		line1 = int(parts1[1])
 		line2 = int(parts2[1])
 
-		line_cmp = cmp(line1, line2)
+		line_cmp = cmp(line1, line2)                  # @semanticbeeng @todo check this = use == ?
 		if line_cmp == 0:
 			method1 = parts1[2]
 			method2 = parts2[2]
 
-			method_cmp = cmp(method1, method2)
+			method_cmp = cmp(method1, method2)        # @semanticbeeng @todo check this use ==?
 			return method_cmp
 		else:
 			return line_cmp
@@ -162,7 +163,8 @@ def save_trace(trace_dict, extension):
 	prev_file = None
 	output = None
 
-	for key, value in iter(sorted(trace_dict.items(), cmp=compare_keys)):
+    # @resource https://stackoverflow.com/a/23756830/4032515
+    for key, value in iter(sorted(trace_dict.items(), key=functools.cmp_to_key(compare_keys))):  # @semanticbeeng @todo check this
 		current_file, tail = key.split(":", 1)
 
 		if current_file != prev_file:
@@ -189,32 +191,35 @@ def save_trace(trace_dict, extension):
 	if output is not None:
 		output.close()
 
+
 def pickle_data(trace_dict, pickle_file_path):
 	try:
 		pickle_file = open(pickle_file_path, 'wb')
 	except IOError as e:
-		print "Couldn't write pickled data to " + pickle_file_path
+        print("Couldn't write pickled data to " + pickle_file_path)
 		return
 
-	cPickle.dump(trace_dict, pickle_file)
+    pickle.dump(trace_dict, pickle_file)
 
 	pickle_file.close()
+
 
 def unpickle_data(pickle_file_path):
 	try:
 		pickle_file = open(pickle_file_path, 'rb')
 	except IOError as e:
-		print "No previous pickled data at " + pickle_file_path
+        print("No previous pickled data at " + pickle_file_path)
 		return dict()
 
-	trace_data = cPickle.load(pickle_file)
+    trace_data = pickle.load(pickle_file)
 
 	pickle_file.close()
 
 	return trace_data
 
+
 if __name__ == '__main__':
-	print "starting"
+    print("starting")
 	sys.settrace(traceit)
 
 	targeted_file_path = sys.argv[1]
@@ -232,4 +237,3 @@ if __name__ == '__main__':
 
 	pickle_data(trace_data, targeted_file_path + TRACE_PICKLED_FILE_EXT)
 	pickle_data(trace_return_data, targeted_file_path + TRACE_PICKLED_RETURN_FILE_EXT)
-
