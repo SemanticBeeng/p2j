@@ -1,3 +1,4 @@
+# coding=utf-8
 """     
         Written By:
                 Chris Humphreys
@@ -25,40 +26,42 @@
 import ast
 import os
 import sys
+from args import ArgTrace
 
 from parser import *
 
-TRACE_FILE_EXT='.trace'
-TRACE_RETURN_FILE_EXT='.return-trace'
+TRACE_FILE_EXT = '.trace'
+TRACE_RETURN_FILE_EXT = '.return-trace'
 
 USE_RELATIVE_SOURCE_FILE_PATHS = True
 
+
 def translate_files(input_filename):
+    pathname = os.getcwd() + "/" + input_filename
 
-	pathname = os.getcwd() + "/" + input_filename
+    # load argument trace file
+    args = ArgTrace.load_trace_files(input_filename, TRACE_FILE_EXT, TRACE_RETURN_FILE_EXT, USE_RELATIVE_SOURCE_FILE_PATHS)
 
-	#load argument trace file
-	args = ArgTrace.load_trace_files(input_filename, TRACE_FILE_EXT, TRACE_RETURN_FILE_EXT, USE_RELATIVE_SOURCE_FILE_PATHS)
-	
-	f = open(pathname)
-	code = f.read() 
-	path = "target/" + input_filename[0:input_filename.find('.')]
+    f = open(pathname)
+    code = f.read()
+    path = "target/" + input_filename[0:input_filename.find('.')]
 
-	try:
-		os.mkdir(path)
-	except:
-		pass
+    try:
+        os.mkdir(path)
+    except:
+        pass
 
-	#pathname = os.path.abspath(input_filename)
-	p = Parser(args, pathname)
-	e = OutputEmitter(path)
-	e.enable_indentation(True)
-	p.parse(code, e)
-	e.finish()
-	
+        # pathname = os.path.abspath(input_filename)
+    p = Parser(args, pathname)
+    e = OutputEmitter(path)
+    e.enable_indentation(True)
+    p.parse(code, e)
+    e.finish()
+
+
 if __name__ == '__main__':
-	if len(sys.argv) != 2:
-		print "Syntax: translate <input.py>"
-		sys.exit(1)
+    if len(sys.argv) != 2:
+        print("Syntax: translate <input.py>")
+        sys.exit(1)
 
-	translate_files(sys.argv[1])
+    translate_files(sys.argv[1])

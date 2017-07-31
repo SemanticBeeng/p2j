@@ -1,3 +1,4 @@
+# coding=utf-8
 """     
         Written By:
                 Chris Humphreys
@@ -28,27 +29,26 @@ import os
 from parser import *
 
 if __name__ == '__main__':
-
-	"""
-	code = '''
+    """
+    code = '''
 def a():
-	for i in w:
-		self.weapons |= (i << index)
+    for i in w:
+        self.weapons |= (i << index)
 '''
-	"""
-	
-	p = Parser(None, None)
-	e = StringEmitter()
-	p.parse(code, e)
-	e.finish()
+    """
 
-	print "------result------"
-	print e.as_string()
+    p = Parser(None, None)
+    e = StringEmitter()
+    p.parse(code, e)
+    e.finish()
+
+    print("------result------")
+    print(e.as_string())
 
 
-#handle calling supers
-#packages don't seem to work
-#string arrays list don't work
-#images = [mygame.Image for x in xrange(0,NUM)]
-#break
-#<< >>
+# handle calling supers
+# packages don't seem to work
+# string arrays list don't work
+# images = [mygame.Image for x in xrange(0,NUM)]
+# break
+# << >>
